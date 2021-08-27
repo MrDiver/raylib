@@ -98,6 +98,7 @@
 //----------------------------------------------------------------------------------
 // Some basic Defines
 //----------------------------------------------------------------------------------
+
 #ifndef PI
     #define PI 3.14159265358979323846f
 #endif
@@ -106,6 +107,18 @@
 #endif
 #ifndef RAD2DEG
     #define RAD2DEG (180.0f/PI)
+#endif
+
+#ifndef DISABLE_TRACKER
+#include <stddef.h>
+void* tracker_malloc(const char* file, int line, size_t size);
+void* tracker_calloc(const char* file, int line, size_t n, size_t size);
+void* tracker_realloc(const char* file, int line,void* ptr, size_t size);
+void tracker_free(const char* file, int line,void* ptr);
+#define RL_MALLOC(sz)       tracker_malloc(__FILE__,__LINE__,sz)
+#define RL_CALLOC(n,sz)     tracker_calloc(__FILE__,__LINE__,n,sz)
+#define RL_REALLOC(ptr,sz)  tracker_realloc(__FILE__,__LINE__,ptr,sz)
+#define RL_FREE(ptr)        tracker_free(__FILE__,__LINE__,ptr)
 #endif
 
 // Allow custom memory allocators

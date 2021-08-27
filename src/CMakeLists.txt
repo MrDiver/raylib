@@ -1,7 +1,7 @@
 # Setup the project and settings
 project(raylib C)
-set(PROJECT_VERSION 3.7.0)
-set(API_VERSION 370)
+set(PROJECT_VERSION 3.7.1)
+set(API_VERSION 371)
 
 include(GNUInstallDirs)
 include(JoinPaths)
@@ -26,6 +26,7 @@ set(raylib_public_headers
     rlgl.h
     raymath.h
     raudio.h
+    raytracker.h
     )
 
 # Sources to be compiled
@@ -99,6 +100,21 @@ target_include_directories(raylib
 
 # Copy the header files to the build directory for convenience
 file(COPY ${raylib_public_headers} DESTINATION "include")
+
+
+add_executable(trackertest trackertest.c ${raylib_sources} ${raylib_public_headers})
+#target_link_libraries(trackertest raylib)
+target_compile_definitions(trackertest PUBLIC "PLATFORM_DESKTOP")
+target_link_libraries(trackertest "${LIBS_PRIVATE}")
+target_include_directories(trackertest
+                           PUBLIC
+                           $<INSTALL_INTERFACE:include>
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           PRIVATE
+                           ${CMAKE_CURRENT_SOURCE_DIR}
+                           ${OPENGL_INCLUDE_DIR}
+                           ${OPENAL_INCLUDE_DIR}
+                           )
 
 # Includes information on how the library will be installed on the system
 # when cmake --install is run
