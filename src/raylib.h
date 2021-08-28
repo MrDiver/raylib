@@ -899,7 +899,25 @@ typedef bool (*SaveFileTextCallback)(const char *fileName, char *text);     // F
 #if defined(__cplusplus)
 extern "C" {            // Prevents name mangling of functions
 #endif
+//
+// QUICK MATH DUMP
+//
+#ifndef MATHDUMP
+#define MATHDUMP
+enum MathPrintMode{
+    SCIENTIFIC,
+    SHORT,
+    MINI,
+};
+const char* getMathFormatString();
+int getMaxPrintedSize(float *m, int size);
+void printMatrixPro(float *m, int sx, int sy);
+void mathPrintM(Matrix m);
+void mathPrintV4(Vector4 v);
+void mathPrintV3(Vector3 v);
+void mathPrintV2(Vector2 v);
 
+#endif
 // Window-related functions
 RLAPI void InitWindow(int width, int height, const char *title);  // Initialize window and OpenGL context
 RLAPI bool WindowShouldClose(void);                               // Check if KEY_ESCAPE pressed or Close icon pressed

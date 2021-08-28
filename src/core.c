@@ -770,6 +770,7 @@ void InitWindow(int width, int height, const char *title)
     // Initialize graphics device (display device and OpenGL context)
     // NOTE: returns true if window and graphic device has been initialized successfully
     CORE.Window.ready = InitGraphicsDevice(width, height);
+    TRACELOG(LOG_DEBUG, "GLFW: Init Graphics Device Successful");
 
     // If graphic device is no properly initialized, we end program
     if (!CORE.Window.ready)
@@ -777,6 +778,7 @@ void InitWindow(int width, int height, const char *title)
         TRACELOG(LOG_FATAL, "Failed to initialize Graphic Device");
         return;
     }
+//     SetWindowSize(CORE.Window.screen.width,CORE.Window.screen.height);
 
     // Initialize hi-res timer
     InitTimer();
@@ -849,6 +851,8 @@ void InitWindow(int width, int height, const char *title)
 #endif
 
 #endif        // PLATFORM_DESKTOP || PLATFORM_WEB || PLATFORM_RPI || PLATFORM_DRM
+
+    TRACELOG(LOG_DEBUG,"GLFW: End of InitWindow");
 }
 
 // Close window and unload OpenGL context
@@ -3618,10 +3622,12 @@ static bool InitGraphicsDevice(int width, int height)
 
     CORE.Window.display.width = mode->width;
     CORE.Window.display.height = mode->height;
+    TRACELOG(LOG_DEBUG,"GLFW: Primary Monitor size %ix%i (Window.display.(width,height))",mode->width,mode->height);
 
     // Set screen width/height to the display width/height if they are 0
     if (CORE.Window.screen.width == 0) CORE.Window.screen.width = CORE.Window.display.width;
     if (CORE.Window.screen.height == 0) CORE.Window.screen.height = CORE.Window.display.height;
+    TRACELOG(LOG_DEBUG,"GLFW: Window desired size %ix%i", CORE.Window.screen.width,CORE.Window.screen.height);
 #endif  // PLATFORM_DESKTOP
 
 #if defined(PLATFORM_WEB)
@@ -3672,7 +3678,7 @@ static bool InitGraphicsDevice(int width, int height)
     {
         // Resize window content area based on the monitor content scale.
         // NOTE: This hint only has an effect on platforms where screen coordinates and pixels always map 1:1 such as Windows and X11.
-        // On platforms like macOS the resolution of the framebuffer is changed independently of the window size.
+        // On platforms like macOS the rmonitoresolution of the framebuffer is changed independently of the window size.
         glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);   // Scale content area based on the monitor content scale where window is placed on
     #if defined(__APPLE__)
         glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
@@ -3736,6 +3742,11 @@ static bool InitGraphicsDevice(int width, int height)
         // remember center for switchinging from fullscreen to window
         CORE.Window.position.x = CORE.Window.display.width/2 - CORE.Window.screen.width/2;
         CORE.Window.position.y = CORE.Window.display.height/2 - CORE.Window.screen.height/2;
+        TRACELOG(LOG_DEBUG, "GLFW: Set window position %i-%i , %i-%i = %i,%i (Center for windowed)",
+                 CORE.Window.display.width/2, CORE.Window.screen.width/2,
+                 CORE.Window.display.height/2, CORE.Window.screen.height/2,
+                 CORE.Window.position.x, CORE.Window.position.y
+        );
 
         if (CORE.Window.position.x < 0) CORE.Window.position.x = 0;
         if (CORE.Window.position.y < 0) CORE.Window.position.y = 0;
@@ -3788,13 +3799,21 @@ static bool InitGraphicsDevice(int width, int height)
     {
         // No-fullscreen window creation
         CORE.Window.handle = glfwCreateWindow(CORE.Window.screen.width, CORE.Window.screen.height, (CORE.Window.title != 0)? CORE.Window.title : " ", NULL, NULL);
-
         if (CORE.Window.handle)
         {
 #if defined(PLATFORM_DESKTOP)
+            // Set Window size again to prevent GLFW resizing if a different monitor than the primary monitor
+            // is used for starting the application
+            glfwSetWindowSize(CORE.Window.handle,CORE.Window.screen.width,CORE.Window.screen.height);
             // Center window on screen
             int windowPosX = CORE.Window.display.width/2 - CORE.Window.screen.width/2;
             int windowPosY = CORE.Window.display.height/2 - CORE.Window.screen.height/2;
+
+            TRACELOG(LOG_DEBUG, "GLFW: Set window position %i-%i , %i-%i = %i,%i",
+                 CORE.Window.display.width/2, CORE.Window.screen.width/2,
+                 CORE.Window.display.height/2, CORE.Window.screen.height/2,
+                 windowPosX, windowPosY
+            );
 
             if (windowPosX < 0) windowPosX = 0;
             if (windowPosY < 0) windowPosY = 0;
@@ -4267,6 +4286,7 @@ static bool InitGraphicsDevice(int width, int height)
 
     // Initialize OpenGL context (states and resources)
     // NOTE: CORE.Window.screen.width and CORE.Window.screen.height not used, just stored as globals in rlgl
+    TRACELOG(LOG_DEBUG, "GLFW: Call rlglInit(%i, %i)",CORE.Window.screen.width, CORE.Window.screen.height);
     rlglInit(CORE.Window.screen.width, CORE.Window.screen.height);
 
     int fbWidth = CORE.Window.render.width;
@@ -4290,6 +4310,7 @@ static bool InitGraphicsDevice(int width, int height)
 #endif
 
     // Setup default viewport
+    TRACELOG(LOG_DEBUG, "GLFW: 4307 SetupViewport(%i,%i)",fbWidth,fbHeight);
     SetupViewport(fbWidth, fbHeight);
 
     CORE.Window.currentFbo.width = CORE.Window.screen.width;
@@ -4328,6 +4349,7 @@ static void SetupViewport(int width, int height)
 
     // Set orthographic projection to current framebuffer size
     // NOTE: Configured top-left corner as (0, 0)
+    TRACELOG(LOG_DEBUG,"GLFW: Setup Viewport Matrix Ortho %i,%i", CORE.Window.render.width, CORE.Window.render.height);
     rlOrtho(0, CORE.Window.render.width, CORE.Window.render.height, 0, 0.0f, 1.0f);
 
     rlMatrixMode(RL_MODELVIEW);         // Switch back to modelview matrix
@@ -4848,10 +4870,12 @@ static EM_BOOL EmscriptenResizeCallback(int eventType, const EmscriptenUiEvent *
 // NOTE: Window resizing not allowed by default
 static void WindowSizeCallback(GLFWwindow *window, int width, int height)
 {
+    TRACELOG(LOG_DEBUG, "GLFW: Resize Screen to %ix%i",width,height);
     SetupViewport(width, height);    // Reset viewport and projection matrix for new size
     CORE.Window.currentFbo.width = width;
     CORE.Window.currentFbo.height = height;
     CORE.Window.resizedLastFrame = true;
+
 
     if (IsWindowFullscreen()) return;
 

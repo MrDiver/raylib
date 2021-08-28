@@ -1,7 +1,7 @@
 # Setup the project and settings
 project(raylib C)
-set(PROJECT_VERSION 3.7.0)
-set(API_VERSION 370)
+set(PROJECT_VERSION 4.0.0)
+set(API_VERSION 4.0.0)
 
 include(GNUInstallDirs)
 include(JoinPaths)
@@ -36,6 +36,7 @@ set(raylib_sources
     text.c
     textures.c
     utils.c
+    mathdump.c
     )
 
 # <root>/cmake/GlfwImport.cmake handles the details around the inclusion of glfw
