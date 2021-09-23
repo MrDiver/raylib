@@ -569,10 +569,10 @@ int Vox_LoadFromMemory(const unsigned char* pvoxData, unsigned int voxDataSize, 
 
 	unsigned long signature;
 
-	unsigned char* fileData = pvoxData;
+	unsigned const char* fileData = pvoxData;
 
-	unsigned char* fileDataPtr = fileData;
-	unsigned char* endfileDataPtr = fileData + voxDataSize;
+	unsigned const char* fileDataPtr = fileData;
+	unsigned const char* endfileDataPtr = fileData + voxDataSize;
 
 	signature = *((unsigned long *)fileDataPtr);
 	fileDataPtr += sizeof(unsigned long);
